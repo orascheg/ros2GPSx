@@ -1,0 +1,11 @@
+float64 longitude
+float64 latitude
+float64 altitude
+float32 ground_speed
+uint8 satellites
+uint8 mode_indicator
+float32 separation
+float32 true_course
+float32 true_course_magnetic
+float32 dilution
+uint32 utc_time
