@@ -13,4 +13,4 @@ ros2 run gpsx gps_node
 
 Additional parameters can be added for connection speed and connection part e.g.
 
-ros2 run gpsx gps_node  -p "comm_port:=/dev/ttyUSB1" -p "comm_speed:=9600"
+ros2 run gpsx gps_node --ros-args -p "comm_port:=/dev/ttyUSB1" -p "comm_speed:=9600"

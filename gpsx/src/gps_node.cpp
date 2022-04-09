@@ -161,6 +161,7 @@ class GPSPublisher : public rclcpp::Node
     void timer_callback();
     void run();
     double safe_stod(std::string& convert);
+    double convert_longlat(std::string& convert);
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<gpsx::msg::Gpsx>::SharedPtr publisher_;
     int openConnection(void);
@@ -279,6 +280,17 @@ double GPSPublisher::safe_stod(std::string& convert)
   }      
 }
 
+// returns calculated longitude or latitude, NAN on conversion error
+double GPSPublisher::convert_longlat(std::string& convert)
+{
+  double value=safe_stod(convert);
+  if(value==NAN)
+    return value;
+  double dDegrees=floor(value/100);
+  double dMinutes=fmod(value,100);
+  return(dDegrees+dMinutes/60.0);
+}
+
 // returns 0 on success
 // -1: invalid start character
 // -2: No asterisk indicating start of checksum
@@ -321,11 +333,10 @@ int GPSPublisher::readMessage(void)
     std::string msgRead;
     vector <string> tokens;
     string intermediate;
-    double value;
     
-     int c = gpsConnection_.peek();  // peek character
-     if(c==EOF)
-       return -10;
+    int c = gpsConnection_.peek();  // peek character
+    if(c==EOF)
+      return -10;
   
     std::getline(gpsConnection_,msgRead);
     if(preprocessMessage(&msgRead)<0)
@@ -369,19 +380,7 @@ int GPSPublisher::readMessage(void)
             //RCLCPP_INFO(this->get_logger(),"UTCTime: "+ UTCtime);
           break;
           case 2: // this is latitude
-            try
-            {          
-              value=std::stod(tokens[i]);
-
-              double dDegrees=floor(value/100);
-              double dMinutes=fmod(value,100);
-              gga_.latitude= dDegrees+dMinutes/60.0;
-            }
-            catch(const std::invalid_argument& ia)
-            {
-              RCLCPP_WARN(this->get_logger(),"Could not convert latitude information: "+ std::string(ia.what()));
-              gga_.latitude=0.0;
-            }         
+            gga_.latitude=convert_longlat(tokens[i]);
           break;
           case 3: // orientation North or South
             if((tokens[i].compare("N")!=0) and (tokens[i].compare("n")!=0))
@@ -389,20 +388,7 @@ int GPSPublisher::readMessage(void)
               gga_.latitude*=-1;
           break;
           case 4: // this is longitude
-            try
-            {          
-              value=std::stod(tokens[i]);
-
-              double dDegrees=floor(value/100);
-              double dMinutes=fmod(value,100);
-              gga_.longitude= dDegrees+dMinutes/60.0;
-              //RCLCPP_INFO(this->get_logger(),"read longitude information: "+ std::to_string(longitude));
-            }
-            catch(const std::invalid_argument& ia)
-            {
-              RCLCPP_INFO(this->get_logger(),"Could not convert longitude information: "+ std::string(ia.what()));
-              gga_.longitude=0.0; 
-            }                 
+            gga_.longitude=convert_longlat(tokens[i]);
           break;
           case 5: // orientation East or West
             if((tokens[i].compare("E")!=0) and (tokens[i].compare("e")!=0))
@@ -436,18 +422,18 @@ int GPSPublisher::readMessage(void)
         }
       }
       //RCLCPP_INFO(this->get_logger(),"UTCtime: "+ UTCtime +" fix:" + std::to_string(fix) + " satellites: " + std::to_string(satellites) + " dilution: " + std::to_string(dilution) + " separation: "+ std::to_string(separation));
-      std::cout << "UTCtime: " << gga_.UTCtime << " fix:" << std::to_string(gga_.fix) << " satellites: " << std::to_string(gga_.satellites) << " dilution: " << std::to_string(gga_.dilution) << " separation: " << std::to_string(gga_.separation) << std::endl;
+      std::cout << "UTCtime: " << gga_.UTCtime << " fix:" << std::to_string(gga_.fix) << " satellites: " << std::to_string(gga_.satellites) << " dilution: " << std::to_string(gga_.dilution) << " separation: " << std::to_string(gga_.separation) << " latitude: " << std::to_string(gga_.latitude) << " longitude: " << std::to_string(gga_.longitude) << std::endl;
     }
     // else if(strncmp(readBuffer,"$GPVTG",6)==0)
     else if(msgRead.compare(3,3,std::string("VTG"))==0)
     {
       // this is the VTG message
       newdata_=true;
-      for(unsigned int i=0;i<tokens.size();i++)
+      for(unsigned int i=1;i<tokens.size();i++)
       {
         switch(i)
         {
-          case 0: // message just ignore
+          case 0: // will not happen
             // ignore
           break;
           case 1: // Track made good in degrees geographical
@@ -490,11 +476,11 @@ int GPSPublisher::readMessage(void)
         // initialize storage to 0
         memset(&gsv_,0,sizeof(struct messageGSV));
         // these are GPS satellites
-        for(unsigned int i=0;i<tokens.size();i++)
+        for(unsigned int i=1;i<tokens.size();i++)
         {
           switch(i)
           {
-            case 0: // message just ignore
+            case 0: // will not happen
               // ignore
             break;
             case 1: // Total number of sentences in group
