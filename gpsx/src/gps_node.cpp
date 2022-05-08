@@ -14,6 +14,7 @@
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "sensor_msgs/msg/nav_sat_status.hpp"
 #include "gpsx/msg/gpsx.hpp"
+#include "gpsx/srv/get_sat_list.hpp"
 
 using namespace std;
 using namespace std::chrono_literals;
@@ -122,6 +123,9 @@ struct messageGSV
   struct satellite sats[4];
 };
 
+// this must not be part of the class, leads to a compiler error if so
+void listGps(const std::shared_ptr<gpsx::srv::GetSatList::Request> request,std::shared_ptr<gpsx::srv::GetSatList::Response> response);
+
 class GPSPublisher : public rclcpp::Node
 {
   public:
@@ -164,6 +168,7 @@ class GPSPublisher : public rclcpp::Node
     double convert_longlat(std::string& convert);
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<gpsx::msg::Gpsx>::SharedPtr publisher_;
+    rclcpp::Service<gpsx::srv::GetSatList>::SharedPtr service_;
     int openConnection(void);
     int closeConnection(void);
     int readMessage(void);
@@ -184,6 +189,7 @@ class GPSPublisher : public rclcpp::Node
 void GPSPublisher::run(void)
 {
   publisher_ = this->create_publisher<gpsx::msg::Gpsx>("gpsx", 10);
+  service_ = this->create_service<gpsx::srv::GetSatList>("get_sat_list",&listGps);
   timer_ = this->create_wall_timer(50ms, std::bind(&GPSPublisher::timer_callback, this));
 }
  
@@ -488,6 +494,9 @@ int GPSPublisher::readMessage(void)
             break;
             case 2:
               gsv_.currCount=safe_stod(tokens[i]);
+              // re-initialize the overall storage of satellites, always done on the first message of GPS sats
+              if(1==gsv_.currCount)
+                sat_monitor_.clear();
             break;
             case 3:
               gsv_.satInView=safe_stod(tokens[i]);
@@ -552,7 +561,78 @@ int GPSPublisher::readMessage(void)
       else if(msgRead.compare(1,2,"GL")==0)
       {
         // these are the Glonass satellites
-        std::cout << "message read GL: " << msgRead << std::endl;
+        memset(&gsv_,0,sizeof(struct messageGSV));
+        // these are GPS satellites
+        for(unsigned int i=1;i<tokens.size();i++)
+        {
+          switch(i)
+          {
+            case 0: // will not happen
+              // ignore
+            break;
+            case 1: // Total number of sentences in group
+              gsv_.msgCount=safe_stod(tokens[i]);
+            break;
+            case 2:
+              gsv_.currCount=safe_stod(tokens[i]);
+            break;
+            case 3:
+              gsv_.satInView=safe_stod(tokens[i]);
+            break;
+            case 4:
+              gsv_.sats[0].id=safe_stod(tokens[i]);
+            break;
+            case 5:
+              gsv_.sats[0].azimuth=safe_stod(tokens[i]);
+            break;
+            case 6:
+              gsv_.sats[0].elevation=safe_stod(tokens[i]);
+            break;
+            case 7:
+              gsv_.sats[0].SNR=safe_stod(tokens[i]);
+              gsv_.sats[0].type=2;             
+            break;  
+            case 8:
+              gsv_.sats[1].id=safe_stod(tokens[i]);
+            break;
+            case 9:
+              gsv_.sats[1].azimuth=safe_stod(tokens[i]);
+            break;
+            case 10:
+              gsv_.sats[1].elevation=safe_stod(tokens[i]);
+            break;
+            case 11:
+              gsv_.sats[1].SNR=safe_stod(tokens[i]);
+              gsv_.sats[1].type=2;       
+            break;  
+            case 12:
+              gsv_.sats[2].id=safe_stod(tokens[i]);
+            break;
+            case 13:
+              gsv_.sats[2].azimuth=safe_stod(tokens[i]);            
+            break;
+            case 14:
+              gsv_.sats[2].elevation=safe_stod(tokens[i]);            
+            break;
+            case 15:
+              gsv_.sats[2].SNR=safe_stod(tokens[i]);            
+              gsv_.sats[2].type=2;             
+            break;  
+            case 16:
+              gsv_.sats[3].id=safe_stod(tokens[i]);
+            break;
+            case 17:
+              gsv_.sats[3].azimuth=safe_stod(tokens[i]);            
+            break;
+            case 18:
+              gsv_.sats[3].elevation=safe_stod(tokens[i]);            
+            break;
+            case 19:
+              gsv_.sats[3].SNR=safe_stod(tokens[i]);            
+              gsv_.sats[3].type=2;             
+            break;  
+          }
+        }
       }
       else if(msgRead.compare(1,2,"GA")==0)
       {
@@ -608,6 +688,16 @@ void GPSPublisher::timer_callback()
     publisher_->publish(message);
     newdata_=false;
   }
+}
+
+void listGps(const std::shared_ptr<gpsx::srv::GetSatList::Request> request,std::shared_ptr<gpsx::srv::GetSatList::Response> response)
+{
+  std::cout << "Got request: " << request->type;
+  response->id=vector<int16_t>{123,165};
+  response->gnsstype=vector<int16_t>{1,2};
+  response->elevation=vector<int16_t>{-90,90};
+  response->azimuth=vector<int16_t>{90,27};
+  response->snr=vector<int16_t>{65,34};
 }
 
 int main(int argc, char * argv[])

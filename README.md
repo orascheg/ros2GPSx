@@ -11,6 +11,6 @@ The node can be run via the ros2 run command
 
 ros2 run gpsx gps_node
 
-Additional parameters can be added for connection speed and connection part e.g.
+Additional parameters can be added for connection speed and connection port e.g.
 
 ros2 run gpsx gps_node --ros-args -p "comm_port:=/dev/ttyUSB1" -p "comm_speed:=9600"
