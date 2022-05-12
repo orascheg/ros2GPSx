@@ -556,7 +556,10 @@ int GPSPublisher::readMessage(void)
           }
         }
         std::cout << "Number of GPS satellites: "<< gsv_.satInView << " Message number: " << gsv_.currCount << " ID sat 1 " << gsv_.sats[0].id << " ID sat 2 " << gsv_.sats[1].id << " ID sat 3 " << gsv_.sats[2].id << " ID sat 4 " << gsv_.sats[3].id << std::endl;
-
+        for(int count=0;count<4;count++)
+        {
+          sat_monitor_.push_back(gsv_.sats[count]);
+        }
       }
       else if(msgRead.compare(1,2,"GL")==0)
       {
@@ -632,6 +635,10 @@ int GPSPublisher::readMessage(void)
               gsv_.sats[3].type=2;             
             break;  
           }
+        }
+        for(int count=0;count<4;count++)
+        {
+          sat_monitor_.push_back(gsv_.sats[count]);
         }
       }
       else if(msgRead.compare(1,2,"GA")==0)
