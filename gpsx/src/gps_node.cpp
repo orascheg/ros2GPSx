@@ -125,6 +125,7 @@ struct messageGSV
 
 // this must not be part of the class, leads to a compiler error if so
 void listGps(const std::shared_ptr<gpsx::srv::GetSatList::Request> request,std::shared_ptr<gpsx::srv::GetSatList::Response> response);
+std::vector <struct satellite> sat_monitor_;
 
 class GPSPublisher : public rclcpp::Node
 {
@@ -183,7 +184,6 @@ class GPSPublisher : public rclcpp::Node
     bool newdata_;
     bool run_;
 
-    std::vector <messageGSV> sat_monitor_;
  };
  
 void GPSPublisher::run(void)
@@ -693,11 +693,25 @@ void GPSPublisher::timer_callback()
 void listGps(const std::shared_ptr<gpsx::srv::GetSatList::Request> request,std::shared_ptr<gpsx::srv::GetSatList::Response> response)
 {
   std::cout << "Got request: " << request->type;
-  response->id=vector<int16_t>{123,165};
-  response->gnsstype=vector<int16_t>{1,2};
-  response->elevation=vector<int16_t>{-90,90};
-  response->azimuth=vector<int16_t>{90,27};
-  response->snr=vector<int16_t>{65,34};
+  std::vector<int16_t> ids;
+  std::vector<int16_t> types;
+  std::vector<int16_t> elevations;
+  std::vector<int16_t> azimuths;
+  std::vector<int16_t> snrs;    
+
+  for(auto it : sat_monitor_)
+  {
+    ids.push_back(it.id);
+    types.push_back(it.type);
+    elevations.push_back(it.elevation);
+    azimuths.push_back(it.azimuth);
+    snrs.push_back(it.SNR);
+  }
+  response->id=std::move(ids);
+  response->gnsstype=std::move(types);
+  response->elevation=std::move(elevations);
+  response->azimuth=std::move(azimuths);
+  response->snr=std::move(snrs);
 }
 
 int main(int argc, char * argv[])
