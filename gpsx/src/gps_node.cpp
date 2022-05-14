@@ -184,7 +184,7 @@ class GPSPublisher : public rclcpp::Node
     bool newdata_;
     bool run_;
 
- };
+};
  
 void GPSPublisher::run(void)
 {
@@ -556,7 +556,14 @@ int GPSPublisher::readMessage(void)
           }
         }
         std::cout << "Number of GPS satellites: "<< gsv_.satInView << " Message number: " << gsv_.currCount << " ID sat 1 " << gsv_.sats[0].id << " ID sat 2 " << gsv_.sats[1].id << " ID sat 3 " << gsv_.sats[2].id << " ID sat 4 " << gsv_.sats[3].id << std::endl;
-        for(int count=0;count<4;count++)
+        int limit=0;
+        // decide how many satellites are to be copied
+        if(gsv_.currCount<gsv_.msgCount)
+          limit=4;
+        else
+          limit=4-((gsv_.currCount)*4-gsv_.satInView);
+        cout << "limit: "<<limit<<" satInView: "<< gsv_.satInView <<" currCount: "<<gsv_.currCount<<endl;
+        for(int count=0;count<limit;count++)
         {
           sat_monitor_.push_back(gsv_.sats[count]);
         }
@@ -636,7 +643,15 @@ int GPSPublisher::readMessage(void)
             break;  
           }
         }
-        for(int count=0;count<4;count++)
+        int limit=0;
+        // decide how many satellites are to be copied
+        if(gsv_.currCount<gsv_.msgCount)
+          limit=4;
+        else
+          limit=4-((gsv_.currCount)*4-gsv_.satInView);
+        cout << "limit: "<<limit<<" satInView: "<< gsv_.satInView <<" currCount: "<<gsv_.currCount<<endl;
+
+        for(int count=0;count<limit;count++)
         {
           sat_monitor_.push_back(gsv_.sats[count]);
         }

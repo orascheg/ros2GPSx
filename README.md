@@ -2,7 +2,7 @@
 A ROS2 node for NMEA GPS
 
 This node is implementing basic telegrams for NMEA GPS communicating via serial lines (NMEA-0183). It publishes a message providing more informaiton than the standard gps message (speed etc.)
-It is currently developed and tested with ROS2 foxy
+It is currently developed and tested with ROS2 foxy on Linux
 
 Build the node with:
 colcon build
