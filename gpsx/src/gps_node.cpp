@@ -562,11 +562,8 @@ int GPSPublisher::readMessage(void)
           limit=4;
         else
           limit=4-((gsv_.currCount)*4-gsv_.satInView);
-        cout << "limit: "<<limit<<" satInView: "<< gsv_.satInView <<" currCount: "<<gsv_.currCount<<endl;
         for(int count=0;count<limit;count++)
-        {
           sat_monitor_.push_back(gsv_.sats[count]);
-        }
       }
       else if(msgRead.compare(1,2,"GL")==0)
       {
@@ -649,12 +646,8 @@ int GPSPublisher::readMessage(void)
           limit=4;
         else
           limit=4-((gsv_.currCount)*4-gsv_.satInView);
-        cout << "limit: "<<limit<<" satInView: "<< gsv_.satInView <<" currCount: "<<gsv_.currCount<<endl;
-
         for(int count=0;count<limit;count++)
-        {
           sat_monitor_.push_back(gsv_.sats[count]);
-        }
       }
       else if(msgRead.compare(1,2,"GA")==0)
       {
