@@ -5,12 +5,12 @@ It is currently developed and tested with ROS2 foxy on Linux
 
 **Build the node with:**
 
-'colcon build
+  ```colcon build```
 
 **Run the node with:**
 
-'ros2 run gpsx gps_node
+  ```ros2 run gpsx gps_node```
 
 Additional parameters can be added for connection speed and connection port e.g.
 
-'ros2 run gpsx gps_node --ros-args -p "comm_port:=/dev/ttyUSB1" -p "comm_speed:=9600"
+```ros2 run gpsx gps_node --ros-args -p "comm_port:=/dev/ttyUSB1" -p "comm_speed:=9600"```
