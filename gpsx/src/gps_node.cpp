@@ -16,7 +16,7 @@
 #include "gpsx/msg/gpsx.hpp"
 #include "gpsx/srv/get_sat_list.hpp"
 
-using namespace std;
+//using namespace std;
 using namespace std::chrono_literals;
 
 /*
@@ -106,7 +106,6 @@ $GPGSV,1,1,13,02,02,213,,03,-3,000,,11,00,121,,14,13,172,05*67
 struct satellite
 {
   /* data */
-  //std::string id;
   unsigned int id;
   int elevation; // -90 to 90 degrees
   unsigned int azimuth; // 0 to 360
@@ -175,7 +174,7 @@ class GPSPublisher : public rclcpp::Node
     int readMessage(void);
     int preprocessMessage(std::string* message);
     
-    fstream gpsConnection_;
+    std::fstream gpsConnection_;
     struct messageGGA gga_;
     struct messageVTG vtg_;
     struct messageGSV gsv_;
@@ -199,7 +198,7 @@ int GPSPublisher::openConnection(void)
 {
   struct termios tty;
   int fd;
-  string serial_portp;
+  std::string serial_portp;
   int serial_speed;
   
   this->get_parameter("comm_port", serial_portp);
@@ -337,8 +336,8 @@ int GPSPublisher::readMessage(void)
   if(initialized_)
   {
     std::string msgRead;
-    vector <string> tokens;
-    string intermediate;
+    std::vector <std::string> tokens;
+    std::string intermediate;
     
     int c = gpsConnection_.peek();  // peek character
     if(c==EOF)
@@ -364,7 +363,7 @@ int GPSPublisher::readMessage(void)
     //RCLCPP_INFO(this->get_logger(), "Read line: "+ msgRead);    
     
     // create stringstream for tokenization
-    stringstream check1(msgRead);
+    std::stringstream check1(msgRead);
     // Tokenizing with ',' 
     while(getline(check1, intermediate, ',')) 
       tokens.push_back(intermediate); 
