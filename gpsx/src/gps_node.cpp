@@ -16,7 +16,6 @@
 #include "gpsx/msg/gpsx.hpp"
 #include "gpsx/srv/get_sat_list.hpp"
 
-//using namespace std;
 using namespace std::chrono_literals;
 
 /*
