@@ -1,14 +1,13 @@
-#ros2GPSx
-A ROS2 node for NMEA GPS
+**A ROS2 node for NMEA GPS**
 
-This node is implementing basic telegrams for NMEA GPS communicating via serial lines (NMEA-0183). It publishes a message providing more information than the standard gps message (speed etc.)
+This node is implementing basic telegrams for NMEA GPS communicating via serial lines (NMEA-0183). It publishes a message providing more information than the standard gps message (ground speed etc.)
 It is currently developed and tested with ROS2 foxy on Linux
 
-##Build the node with:
+**Build the node with:**
 
 'colcon build
 
-##Run the node with:
+**Run the node with:**
 
 'ros2 run gpsx gps_node
 
