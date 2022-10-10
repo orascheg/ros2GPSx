@@ -26,11 +26,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetSatList.srv"
 )
 
-include_directories(
-  include
-  ${colcon_INCLUDE_DIRS}
-)
-
 add_executable(gps_node src/gps_node.cpp)
 ament_target_dependencies(gps_node rclcpp std_msgs sensor_msgs)
 rosidl_target_interfaces(gps_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
@@ -41,11 +36,10 @@ target_include_directories(gps_node PUBLIC
 
 install(TARGETS gps_node
   EXPORT export_${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME}
+  INCLUDES
+  DESTINATION include)
 
-install(DIRECTORY include/
-  DESTINATION include
-)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

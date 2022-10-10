@@ -202,7 +202,7 @@ int GPSPublisher::openConnection(void)
   
   this->get_parameter("comm_port", serial_portp);
   this->get_parameter("comm_speed", serial_speed);
-  RCLCPP_INFO(this->get_logger(), "Opening port: " + serial_portp + " speed:" + std::to_string(serial_speed));
+  RCLCPP_INFO(this->get_logger(), "Opening port: %s speed: %d",serial_portp.c_str(),serial_speed);
 
   fd = open (serial_portp.c_str(), O_RDWR | O_NOCTTY);
   if(fd<0)
@@ -210,7 +210,7 @@ int GPSPublisher::openConnection(void)
     
   // get the current setting, we assume that 8N1 is set TODO: fix so that this is always set
   if(tcgetattr(fd, &tty) != 0)
-    RCLCPP_INFO(this->get_logger(), "Error " + std::to_string(errno) + " from tcgetattr: "+ strerror(errno));
+    RCLCPP_INFO(this->get_logger(), "Error %d from tcgetattr: %s", errno, strerror(errno));
   tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
   tty.c_cflag &= ~CSIZE;
   tty.c_cflag |= CS8;         /* 8-bit characters */
@@ -243,7 +243,7 @@ int GPSPublisher::openConnection(void)
 
   
   if (tcsetattr(fd, TCSANOW, &tty) != 0)
-    RCLCPP_ERROR(this->get_logger(), "Error " + std::to_string(errno) + " from tcsetattr: "+ strerror(errno));
+    RCLCPP_ERROR(this->get_logger(), "Error %d from tcsetattr: %s",errno,strerror(errno));
   close(fd);
 
   gpsConnection_.open(serial_portp.c_str(), std::fstream::in | std::fstream::out);
@@ -357,7 +357,7 @@ int GPSPublisher::readMessage(void)
     // $GA: Galileo reciever
     if(msgRead.compare(0,3,"$GP")!=0&&msgRead.compare(0,3,"$GN")!=0&&msgRead.compare(0,3,"$GL")&&msgRead.compare(0,3,"$BD")&&msgRead.compare(0,3,"$GA"))
     {
-      RCLCPP_ERROR(this->get_logger(),"unknown start token of message: "+msgRead);
+      RCLCPP_ERROR(this->get_logger(),"unknown start token of message: %s",msgRead.c_str());
     }
     //RCLCPP_INFO(this->get_logger(), "Read line: "+ msgRead);    
     
@@ -381,7 +381,6 @@ int GPSPublisher::readMessage(void)
           break;
           case 1: // this is UTC time
             gga_.UTCtime= tokens[i];
-            //RCLCPP_INFO(this->get_logger(),"UTCTime: "+ UTCtime);
           break;
           case 2: // this is latitude
             gga_.latitude=convert_longlat(tokens[i]);
@@ -413,14 +412,14 @@ int GPSPublisher::readMessage(void)
           break;
           case 10: // unit of altitude, usually Meter
             if((tokens[i].compare("M")!=0) and (tokens[i].compare("m")!=0))
-              RCLCPP_ERROR(this->get_logger(),"GPS does not report altitude in meter! "+tokens[i]); 
+              RCLCPP_ERROR(this->get_logger(),"GPS does not report altitude in meter! %s",tokens[i].c_str()); 
           break;
           case 11: // geoidal separation
             gga_.separation=safe_stod(tokens[i]);
           break;
           case 12:
             if((tokens[i].compare("M")!=0) and (tokens[i].compare("m")!=0))
-              RCLCPP_ERROR(this->get_logger(),"GPS does not report geoidal separation in meter! "+tokens[i]);           
+              RCLCPP_ERROR(this->get_logger(),"GPS does not report geoidal separation in meter! %s",tokens[i].c_str());           
           break;
           // ignoring the rest
         }
@@ -445,14 +444,14 @@ int GPSPublisher::readMessage(void)
           break;
           case 2: // direction of true course
             if((tokens[i].compare("T")!=0) and (tokens[i].compare("t")!=0))
-              RCLCPP_ERROR(this->get_logger(),"GPS does not report true course to north! "+tokens[i]); 
+              RCLCPP_ERROR(this->get_logger(),"GPS does not report true course to north! %s",tokens[i].c_str()); 
           break;
           case 3: // Track made good in degrees magnetic
             vtg_.true_course_magnetic=safe_stod(tokens[i]);
           break;
           case 4: // direction of true course
             if((tokens[i].compare("M")!=0) and (tokens[i].compare("m")!=0))
-              RCLCPP_ERROR(this->get_logger(),"GPS does not report true course to magnetic north! "+tokens[i]); 
+              RCLCPP_ERROR(this->get_logger(),"GPS does not report true course to magnetic north! %s",tokens[i].c_str()); 
           break;
           case 5: // speed in knots
             // ignore
@@ -465,7 +464,7 @@ int GPSPublisher::readMessage(void)
           break;
           case 8: // direction of true course
             if((tokens[i].compare("K")!=0) and (tokens[i].compare("k")!=0))
-              RCLCPP_ERROR(this->get_logger(),"GPS does not report ground speed in km/h! "+tokens[i]); 
+              RCLCPP_ERROR(this->get_logger(),"GPS does not report ground speed in km/h! %s",tokens[i].c_str()); 
           break;                              
         }
       }
